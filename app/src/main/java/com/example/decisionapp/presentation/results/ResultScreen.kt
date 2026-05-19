@@ -21,12 +21,16 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.decisionapp.domain.model.ChoiceResult
 import com.example.decisionapp.domain.model.Criterion
-import com.example.decisionapp.presentation.criteria.scoreColor
-import com.example.decisionapp.ui.theme.DecisionBlue
-import com.example.decisionapp.ui.theme.DecisionGold
-import com.example.decisionapp.ui.theme.DecisionPurple
-import com.example.decisionapp.ui.theme.DecisionRed
-import com.example.decisionapp.ui.theme.DecisionTeal
+import com.example.decisionapp.ui.theme.CalmBlue
+import com.example.decisionapp.ui.theme.CalmBlueSurface
+import com.example.decisionapp.ui.theme.SageGreen
+import com.example.decisionapp.ui.theme.SemanticError
+import com.example.decisionapp.ui.theme.SemanticSuccess
+import com.example.decisionapp.ui.theme.WarmAmber
+import com.example.decisionapp.ui.theme.WarmAmberSurface
+
+// Плавный easing: быстрый старт → медленное торможение
+private val EaseOutCubic = CubicBezierEasing(0.33f, 1f, 0.68f, 1f)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,206 +42,313 @@ fun ResultScreen(
     val state by viewModel.state.collectAsState()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Результат", fontWeight = FontWeight.Bold) },
+                title = { Text("Результат", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
-                    IconButton(onClick = onBack) { Icon(Icons.Default.Home, null) }
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.Default.Home, contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onBackground)
+                    }
                 },
                 actions = {
                     IconButton(onClick = { viewModel.calculate() }) {
-                        Icon(Icons.Default.Refresh, "Пересчитать")
+                        Icon(Icons.Default.Refresh, contentDescription = "Пересчитать",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { padding ->
         when {
-            state.isLoading -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(color = DecisionBlue)
-                    Spacer(Modifier.height(12.dp))
-                    Text("Анализируем данные...", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            state.isLoading -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    CircularProgressIndicator(color = CalmBlue, strokeWidth = 2.dp)
+                    Text(
+                        "Анализируем данные...",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
-            state.error != null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(Icons.Default.Error, null, tint = DecisionRed, modifier = Modifier.size(48.dp))
-                    Spacer(Modifier.height(8.dp))
-                    Text(state.error ?: "Ошибка", color = MaterialTheme.colorScheme.error)
-                    Spacer(Modifier.height(16.dp))
-                    Button(onClick = { viewModel.calculate() }) { Text("Попробовать снова") }
+
+            state.error != null -> Box(
+                Modifier.fillMaxSize().padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Icon(Icons.Default.ErrorOutline, contentDescription = null,
+                        tint = SemanticError, modifier = Modifier.size(48.dp))
+                    Text(state.error ?: "Ошибка", color = SemanticError,
+                        style = MaterialTheme.typography.bodyMedium)
+                    OutlinedButton(
+                        onClick = { viewModel.calculate() },
+                        shape = RoundedCornerShape(12.dp)
+                    ) { Text("Повторить") }
                 }
             }
+
             state.result != null -> {
                 val result = state.result!!
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(padding),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // Decision title
                     item {
-                        Text(result.decision.title, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+                        Text(result.decision.title, style = MaterialTheme.typography.headlineSmall)
                         if (result.decision.description.isNotBlank()) {
-                            Text(result.decision.description, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 4.dp))
+                            Text(
+                                result.decision.description,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
                         }
                     }
 
-                    // Winner card
-                    item {
-                        val winner = result.rankedChoices.firstOrNull()
-                        if (winner != null) {
-                            WinnerCard(winner)
-                        }
-                    }
+                    item { WinnerCard(result.rankedChoices.firstOrNull()) }
 
-                    // All results
                     item {
-                        Text("Все варианты по рейтингу", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                        Text("Рейтинг вариантов", style = MaterialTheme.typography.titleMedium)
+                        Spacer(Modifier.height(2.dp))
                         Text(
-                            "Ранжированы по убыванию — от лучшего к худшему",
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 2.dp, bottom = 8.dp)
+                            "От лучшего к наименее подходящему",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
                     itemsIndexed(result.rankedChoices) { index, choiceResult ->
-                        RankedChoiceItem(index = index, choiceResult = choiceResult, criteria = result.criteria)
+                        RankedChoiceItem(
+                            index = index,
+                            choiceResult = choiceResult,
+                            criteria = result.criteria
+                        )
                     }
 
-                    // Criteria weights
-                    item {
-                        CriteriaSensitivityCard(result.criteria)
-                    }
-
-                    item { Spacer(Modifier.height(16.dp)) }
+                    item { CriteriaSensitivityCard(result.criteria) }
+                    item { Spacer(Modifier.height(24.dp)) }
                 }
             }
         }
     }
 }
+
+// ── Карточка победителя ──────────────────────────────────
 
 @Composable
-fun WinnerCard(winner: ChoiceResult) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+fun WinnerCard(winner: ChoiceResult?) {
+    if (winner == null) return
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(Brush.linearGradient(listOf(CalmBlue, SageGreen)))
+            .padding(20.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Brush.linearGradient(listOf(DecisionBlue, DecisionTeal)))
-                .padding(20.dp)
-        ) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.EmojiEvents, null, tint = DecisionGold, modifier = Modifier.size(32.dp))
-                    Spacer(Modifier.width(12.dp))
-                    Column {
-                        Text("Лучший выбор", color = Color.White.copy(alpha = 0.85f), fontSize = 14.sp)
-                        Text(winner.choice.name, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Bold)
-                    }
+        Column {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // Иконка кубка в полупрозрачном боксе
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.EmojiEvents,
+                        contentDescription = null,
+                        tint = Color(0xFFFFD580), // золотой
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
-                Spacer(Modifier.height(12.dp))
-                Text(
-                    "Итоговый балл: ${"%.1f".format(winner.totalScore)} — ${"%.0f".format(winner.percentage)}% от максимума",
-                    color = Color.White.copy(alpha = 0.9f),
-                    fontSize = 14.sp
+                Column {
+                    Text(
+                        "Лучший выбор",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White.copy(alpha = 0.75f)
+                    )
+                    Text(
+                        winner.choice.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // Мини-прогресс-бар победителя
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(Color.White.copy(alpha = 0.2f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(winner.percentage / 100f)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(Color.White.copy(alpha = 0.85f))
                 )
             }
+
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Взвешенный балл: ${"%.1f".format(winner.totalScore)}  ·  " +
+                        "${"%.0f".format(winner.percentage)}% от максимума",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.8f)
+            )
         }
     }
 }
+
+// ── Элемент рейтинга ─────────────────────────────────────
 
 @Composable
 fun RankedChoiceItem(index: Int, choiceResult: ChoiceResult, criteria: List<Criterion>) {
+    // Анимация с задержкой — cascade-эффект
     val animatedProgress by animateFloatAsState(
         targetValue = choiceResult.percentage / 100f,
-        animationSpec = tween(durationMillis = 800, delayMillis = index * 100),
-        label = "progress"
+        animationSpec = tween(
+            durationMillis = 900,
+            delayMillis = index * 120,
+            easing = EaseOutCubic
+        ),
+        label = "bar_$index"
     )
 
+    // Цвета по рангу
+    val cardBg = when (index) {
+        0    -> WarmAmberSurface
+        1    -> CalmBlueSurface
+        else -> MaterialTheme.colorScheme.surface
+    }
     val barColor = when (index) {
-        0 -> DecisionBlue
-        1 -> DecisionTeal
-        2 -> DecisionPurple
+        0    -> CalmBlue
+        1    -> CalmBlue
+        else -> MaterialTheme.colorScheme.outline
+    }
+    val rankBg = when (index) {
+        0    -> Color(0xFFF5EFE2)
+        1    -> CalmBlueSurface
+        else -> MaterialTheme.colorScheme.surfaceVariant
+    }
+    val rankTextColor = when (index) {
+        0    -> Color(0xFF8A7030)
+        1    -> Color(0xFF4A7AA8)
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val borderColor = when (index) {
+        0    -> WarmAmber.copy(alpha = 0.4f)
         else -> MaterialTheme.colorScheme.outline
     }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (index == 0) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(if (index == 0) 4.dp else 2.dp)
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(0.5.dp, borderColor)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Rank badge
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .background(
-                            if (index == 0) DecisionGold else MaterialTheme.colorScheme.surfaceVariant,
-                            RoundedCornerShape(10.dp)
-                        ),
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(rankBg),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         "${index + 1}",
-                        fontWeight = FontWeight.Bold,
-                        color = if (index == 0) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.labelLarge,
+                        color = rankTextColor
                     )
                 }
-
-                Spacer(Modifier.width(12.dp))
-                Text(choiceResult.choice.name, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
+                Text(
+                    choiceResult.choice.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.weight(1f)
+                )
                 Text(
                     "${"%.0f".format(choiceResult.percentage)}%",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    color = barColor
+                    style = MaterialTheme.typography.titleMedium,
+                    color = barColor,
+                    fontWeight = FontWeight.Medium
                 )
             }
 
             Spacer(Modifier.height(10.dp))
 
-            LinearProgressIndicator(
-                progress = { animatedProgress },
-                modifier = Modifier.fillMaxWidth().height(8.dp).clip(RoundedCornerShape(4.dp)),
-                color = barColor,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+            // Тонкий 6dp бар (было 8dp)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(animatedProgress)
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(barColor)
+                )
+            }
 
-            // Score details per criterion
+            // Детали по критериям
             if (criteria.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
                 criteria.take(3).forEach { criterion ->
                     val score = choiceResult.scoresByCriterion[criterion.id] ?: 0f
-                    Row(modifier = Modifier.padding(vertical = 2.dp)) {
+                    Row(modifier = Modifier.padding(vertical = 1.dp)) {
                         Text(
                             criterion.name,
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.weight(1f)
                         )
                         Text(
-                            "%.0f/10".format(score),
-                            fontSize = 12.sp,
-                            color = scoreColor(score.toInt()),
-                            fontWeight = FontWeight.Medium
+                            "${"%.0f".format(score)}/10",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = when {
+                                score >= 7f -> SemanticSuccess
+                                score >= 4f -> WarmAmber
+                                else        -> SemanticError
+                            }
                         )
                     }
                 }
                 if (criteria.size > 3) {
                     Text(
                         "... и ещё ${criteria.size - 3} критерий",
-                        fontSize = 11.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -246,39 +357,62 @@ fun RankedChoiceItem(index: Int, choiceResult: ChoiceResult, criteria: List<Crit
     }
 }
 
+// ── Веса критериев ───────────────────────────────────────
+
 @Composable
 fun CriteriaSensitivityCard(criteria: List<Criterion>) {
-    val totalWeight = criteria.sumOf { it.weight.toDouble() }.toFloat().takeIf { it > 0f } ?: 1f
+    val total = criteria.sumOf { it.weight.toDouble() }.toFloat().coerceAtLeast(1f)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Tune, null, tint = DecisionBlue)
-                Spacer(Modifier.width(8.dp))
-                Text("Веса критериев", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(Icons.Default.Tune, contentDescription = null,
+                    tint = CalmBlue, modifier = Modifier.size(18.dp))
+                Text("Веса критериев", style = MaterialTheme.typography.titleMedium)
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
 
             criteria.forEach { criterion ->
-                val pct = (criterion.weight / totalWeight) * 100f
+                val pct = (criterion.weight / total) * 100f
                 Column(modifier = Modifier.padding(vertical = 4.dp)) {
                     Row {
-                        Text(criterion.name, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                        Text("${"%.0f".format(pct)}%", fontSize = 13.sp, color = DecisionBlue, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            criterion.name,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            "${"%.0f".format(pct)}%",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = CalmBlue
+                        )
                     }
                     Spacer(Modifier.height(4.dp))
-                    LinearProgressIndicator(
-                        progress = { pct / 100f },
-                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)),
-                        color = DecisionBlue,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(CalmBlueSurface)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(pct / 100f)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(CalmBlue)
+                        )
+                    }
                 }
             }
         }
