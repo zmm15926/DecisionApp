@@ -20,7 +20,7 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        //testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunner = "com.example.decisionapp.HiltTestRunner"
     }
 
@@ -42,6 +42,16 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy {
+        eachDependency {
+            if (requested.group == "org.jetbrains.kotlinx" && requested.name.startsWith("kotlinx-coroutines")) {
+                useVersion(libs.versions.kotlinxCoroutinesTest.get())
+            }
+        }
+    }
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -51,45 +61,43 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
+
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.ui)
     ksp(libs.androidx.room.compiler)
+
     implementation(libs.androidx.datastore.core)
-    implementation(libs.androidx.navigation.runtime.ktx)
-    implementation(libs.androidx.datastore.preferences.core)
-    implementation(libs.androidx.junit.ktx)
-    implementation(libs.androidx.runner)
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.androidx.datastore.preferences)
-    // Hilt
+    implementation(libs.androidx.datastore.preferences.core)
+
+    implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    // MockK — для mockk(), coEvery, coVerify
-    testImplementation(libs.mockk)
-    // Coroutines Test — для runTest
-    testImplementation(libs.kotlinx.coroutines.test)
-    // Hilt + Compose
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // Material Icons Extended (для EmojiEvents, Tune, Refresh и др.)
-    implementation(libs.androidx.compose.material.icons.extended)
-    // Compose UI Testing
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.junit.ktx)
+    implementation(libs.androidx.runner)
 
-    // Hilt Testing
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+
     androidTestImplementation(libs.hilt.android.testing)
-    kspAndroidTest(libs.hilt.compiler.v2511)
+    kspAndroidTest(libs.hilt.compiler)
+
     androidTestImplementation(libs.mockk.android)
     androidTestImplementation(libs.kotlinx.coroutines.test)
-    testImplementation(libs.turbine)
     androidTestImplementation(libs.turbine)
-    testImplementation(libs.mockk.v11310)
-    testImplementation(libs.kotlinx.coroutines.test.v173)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

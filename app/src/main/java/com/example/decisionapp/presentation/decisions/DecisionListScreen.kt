@@ -84,8 +84,6 @@ class DecisionListViewModel @Inject constructor(
     fun logout() = viewModelScope.launch { logoutUseCase() }
 }
 
-// ── UI ────────────────────────────────────────────────────────
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DecisionListScreen(
@@ -197,7 +195,6 @@ fun DecisionListScreen(
         }
     }
 
-    // Диалог выхода
     if (showLogoutDialog) {
         CalmDialog(
             title = "Выйти из аккаунта?",
@@ -209,7 +206,6 @@ fun DecisionListScreen(
         )
     }
 
-    // Диалог удаления
     decisionToDelete?.let { d ->
         CalmDialog(
             title = "Удалить решение?",
@@ -221,8 +217,6 @@ fun DecisionListScreen(
         )
     }
 }
-
-// ── Компонент: мини-статистика ─────────────────────────────
 
 @Composable
 fun StatsRow(count: Int) {
@@ -253,13 +247,10 @@ fun StatMiniCard(
     }
 }
 
-// ── Компонент: карточка решения ───────────────────────────
-
 @Composable
 fun DecisionCard(decision: Decision, onClick: () -> Unit, onDelete: () -> Unit) {
     val dateFormat = remember { SimpleDateFormat("d MMM yyyy", Locale("ru")) }
 
-    // Три варианта иконки — чередуются по id
     val iconColors = listOf(
         CalmBlueSurface  to CalmBlue,
         SageGreenSurface to SageGreen,
@@ -334,8 +325,6 @@ fun DecisionCard(decision: Decision, onClick: () -> Unit, onDelete: () -> Unit) 
     }
 }
 
-// ── Компонент: пустой экран ───────────────────────────────
-
 @Composable
 fun EmptyDecisionsPlaceholder(modifier: Modifier = Modifier) {
     Column(
@@ -368,8 +357,6 @@ fun EmptyDecisionsPlaceholder(modifier: Modifier = Modifier) {
         )
     }
 }
-
-// ── Компонент: общий диалог ───────────────────────────────
 
 @Composable
 fun CalmDialog(

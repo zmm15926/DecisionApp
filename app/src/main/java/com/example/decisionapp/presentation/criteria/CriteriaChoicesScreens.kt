@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 
-// ========== CRITERIA VIEWMODEL ==========
 
 data class CriteriaState(
     val decisionId: Long = 0,
@@ -100,7 +99,6 @@ class CriteriaViewModel @Inject constructor(
     }
 }
 
-// ========== CHOICES VIEWMODEL ==========
 
 data class ChoicesState(
     val decisionId: Long = 0,
@@ -152,10 +150,6 @@ class ChoicesViewModel @Inject constructor(
         viewModelScope.launch { deleteChoiceUseCase(id) }
     }
 }
-
-// ========== CRITERIA SCREEN ==========
-
-
 
 val SUGGESTED_CRITERIA = listOf(
     "Стоимость", "Качество", "Удобство", "Престиж", "Карьерный рост",
@@ -311,7 +305,6 @@ fun CriterionItem(criterion: Criterion, onWeightChange: (Float) -> Unit, onDelet
     }
 }
 
-// ========== CHOICES SCREEN ==========
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

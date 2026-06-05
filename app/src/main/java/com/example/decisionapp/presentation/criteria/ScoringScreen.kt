@@ -44,7 +44,7 @@ data class ScoringState(
     val decisionTitle: String = "",
     val criteria: List<Criterion> = emptyList(),
     val choices: List<Choice> = emptyList(),
-    val scores: Map<Pair<Long, Long>, Float> = emptyMap(), // choiceId to criterionId -> value
+    val scores: Map<Pair<Long, Long>, Float> = emptyMap(),
     val isLoading: Boolean = true,
     val currentChoiceIndex: Int = 0
 )
@@ -112,9 +112,6 @@ class ScoringViewModel @Inject constructor(
         }
     }
 }
-
-// ======= SCORING SCREEN ========
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -279,7 +276,6 @@ fun ScoreCriterionItem(
 
             Spacer(Modifier.height(8.dp))
 
-            // Исправлено: for вместо forEach — сохраняет RowScope, поэтому .weight() работает
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.fillMaxWidth()

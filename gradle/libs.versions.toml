@@ -30,6 +30,7 @@ runner = "1.7.0"
 uiTestJunit4 = "1.11.1"
 kotlin = "2.0.21"
 turbine = "1.2.1"
+ui = "1.11.2"
 
 [libraries]
 androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
@@ -73,6 +74,7 @@ mockk-v11310 = { module = "io.mockk:mockk", version.ref = "mockkVersion" }
 ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4", version.ref = "uiTestJunit4" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 mockk-android = { module = "io.mockk:mockk-android", version.ref = "mockk" }
+androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

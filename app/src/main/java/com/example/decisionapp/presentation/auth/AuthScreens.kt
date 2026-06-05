@@ -14,6 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
@@ -117,7 +119,8 @@ fun LoginScreen(
                         value = username,
                         onValueChange = { username = it },
                         label = "Логин",
-                        leadingIcon = Icons.Default.Person
+                        leadingIcon = Icons.Default.Person,
+                        modifier = Modifier.testTag("LoginUsernameInput")
                     )
                     CalmTextField(
                         value = password,
@@ -126,7 +129,8 @@ fun LoginScreen(
                         leadingIcon = Icons.Default.Lock,
                         isPassword = true,
                         passwordVisible = passwordVisible,
-                        onPasswordToggle = { passwordVisible = !passwordVisible }
+                        onPasswordToggle = { passwordVisible = !passwordVisible },
+                        modifier = Modifier.testTag("LoginPasswordInput")
                     )
 
                     AnimatedVisibility(visible = uiState.error != null) {
@@ -267,7 +271,8 @@ fun RegisterScreen(
                         value = username,
                         onValueChange = { username = it },
                         label = "Логин (минимум 3 символа)",
-                        leadingIcon = Icons.Default.Person
+                        leadingIcon = Icons.Default.Person,
+                        modifier = Modifier.testTag("RegisterUsernameInput")
                     )
                     CalmTextField(
                         value = password,
@@ -276,7 +281,8 @@ fun RegisterScreen(
                         leadingIcon = Icons.Default.Lock,
                         isPassword = true,
                         passwordVisible = passwordVisible,
-                        onPasswordToggle = { passwordVisible = !passwordVisible }
+                        onPasswordToggle = { passwordVisible = !passwordVisible },
+                        modifier = Modifier.testTag("RegisterPasswordInput")
                     )
                     CalmTextField(
                         value = confirmPassword,
@@ -284,7 +290,7 @@ fun RegisterScreen(
                         label = "Подтвердите пароль",
                         leadingIcon = Icons.Default.LockOpen,
                         isPassword = true,
-                        passwordVisible = false
+                        modifier = Modifier.testTag("RegisterConfirmPasswordInput")
                     )
 
                     AnimatedVisibility(visible = uiState.error != null) {
@@ -300,7 +306,7 @@ fun RegisterScreen(
                     Button(
                         onClick = { viewModel.register(username, password, confirmPassword) },
                         enabled = !uiState.isLoading,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        modifier = Modifier.fillMaxWidth().height(52.dp).testTag("RegisterButton"),
                         shape = RoundedCornerShape(14.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = SageGreen),
                         elevation = ButtonDefaults.buttonElevation(
@@ -333,14 +339,13 @@ fun RegisterScreen(
     }
 }
 
-// ── Переиспользуемое поле ввода ──────────────────────────────
-
 @Composable
 fun CalmTextField(
     value: String,
     onValueChange: (String) -> Unit,
     label: String,
-    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    leadingIcon: ImageVector,
+    modifier: Modifier = Modifier,
     isPassword: Boolean = false,
     passwordVisible: Boolean = false,
     onPasswordToggle: (() -> Unit)? = null
@@ -370,7 +375,7 @@ fun CalmTextField(
         } else null,
         visualTransformation = if (isPassword && !passwordVisible)
             PasswordVisualTransformation() else VisualTransformation.None,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(

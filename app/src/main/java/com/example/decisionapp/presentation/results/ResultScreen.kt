@@ -29,7 +29,6 @@ import com.example.decisionapp.ui.theme.SemanticSuccess
 import com.example.decisionapp.ui.theme.WarmAmber
 import com.example.decisionapp.ui.theme.WarmAmberSurface
 
-// Плавный easing: быстрый старт → медленное торможение
 private val EaseOutCubic = CubicBezierEasing(0.33f, 1f, 0.68f, 1f)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,8 +147,6 @@ fun ResultScreen(
     }
 }
 
-// ── Карточка победителя ──────────────────────────────────
-
 @Composable
 fun WinnerCard(winner: ChoiceResult?) {
     if (winner == null) return
@@ -224,11 +221,8 @@ fun WinnerCard(winner: ChoiceResult?) {
     }
 }
 
-// ── Элемент рейтинга ─────────────────────────────────────
-
 @Composable
 fun RankedChoiceItem(index: Int, choiceResult: ChoiceResult, criteria: List<Criterion>) {
-    // Анимация с задержкой — cascade-эффект
     val animatedProgress by animateFloatAsState(
         targetValue = choiceResult.percentage / 100f,
         animationSpec = tween(
@@ -239,7 +233,6 @@ fun RankedChoiceItem(index: Int, choiceResult: ChoiceResult, criteria: List<Crit
         label = "bar_$index"
     )
 
-    // Цвета по рангу
     val cardBg = when (index) {
         0    -> WarmAmberSurface
         1    -> CalmBlueSurface
@@ -305,7 +298,6 @@ fun RankedChoiceItem(index: Int, choiceResult: ChoiceResult, criteria: List<Crit
 
             Spacer(Modifier.height(10.dp))
 
-            // Тонкий 6dp бар (было 8dp)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -322,7 +314,6 @@ fun RankedChoiceItem(index: Int, choiceResult: ChoiceResult, criteria: List<Crit
                 )
             }
 
-            // Детали по критериям
             if (criteria.isNotEmpty()) {
                 Spacer(Modifier.height(10.dp))
                 criteria.take(3).forEach { criterion ->
@@ -356,8 +347,6 @@ fun RankedChoiceItem(index: Int, choiceResult: ChoiceResult, criteria: List<Crit
         }
     }
 }
-
-// ── Веса критериев ───────────────────────────────────────
 
 @Composable
 fun CriteriaSensitivityCard(criteria: List<Criterion>) {

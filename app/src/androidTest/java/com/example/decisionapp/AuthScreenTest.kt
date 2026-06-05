@@ -1,7 +1,7 @@
 package com.example.decisionapp
 
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Before
@@ -24,7 +24,7 @@ class AuthScreenTest {
 
     @Test
     fun loginScreen_isDisplayed() {
-        composeRule.onNodeWithText("Принятие Решений").assertIsDisplayed()
+        composeRule.onNodeWithText("Принятие решений", ignoreCase = true).assertIsDisplayed()
         composeRule.onNodeWithText("Войти").assertIsDisplayed()
     }
 
@@ -45,7 +45,7 @@ class AuthScreenTest {
     fun registerScreen_backToLogin() {
         composeRule.onNodeWithText("Нет аккаунта? Зарегистрироваться").performClick()
         composeRule.onNodeWithText("Уже есть аккаунт? Войти").performClick()
-        composeRule.onNodeWithText("Принятие Решений").assertIsDisplayed()
+        composeRule.onNodeWithText("Принятие решений", ignoreCase = true).assertIsDisplayed()
     }
 
     @Test
@@ -70,23 +70,20 @@ class DecisionFlowTest {
 
     @Test
     fun fullRegistrationAndDecisionFlow() {
-        // Register
         composeRule.onNodeWithText("Нет аккаунта? Зарегистрироваться").performClick()
 
         val timestamp = System.currentTimeMillis()
         val testUser = "testuser$timestamp"
 
-        composeRule.onNodeWithText("Логин (мин. 3 символа)").let {
-            // find text field by label
-        }
-        composeRule.onAllNodesWithText("")[0] // placeholder approach
-
-        // Type in username field
-        composeRule.onNodeWithContentDescription("username", useUnmergedTree = true)
+        composeRule.onNodeWithTag("RegisterUsernameInput")
             .performTextInput(testUser)
 
-        // Type password
-        composeRule.onNodeWithText("Пароль (мин. 6 символов)").performClick()
-        composeRule.onNodeWithText("Зарегистрироваться").performClick()
+        composeRule.onNodeWithTag("RegisterPasswordInput")
+            .performTextInput("password123")
+
+        composeRule.onNodeWithTag("RegisterConfirmPasswordInput")
+            .performTextInput("password123")
+
+        composeRule.onNodeWithText("Создать аккаунт").performClick()
     }
 }
